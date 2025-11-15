@@ -1,4 +1,3 @@
-// src/components/LoginForm.jsx
 import React, { useState } from "react";
 
 const LoginForm = () => {
@@ -13,22 +12,22 @@ const LoginForm = () => {
     e.preventDefault();
     const { email, password } = formData;
 
-    // Basic email check for edu.sust domain
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@edu\.sust\.ac\.bd$/;
+    // Allow ONLY name@sust.edu
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@sust\.edu$/;
 
     if (!emailRegex.test(email)) {
-      setError("Please use a valid SUST institutional email (e.g., name@edu.sust.ac.bd)");
+      setError("Only official SUST email is allowed (e.g., name@sust.edu)");
       return;
     }
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters long.");
+      setError("Password must be at least 6 characters.");
       return;
     }
 
     setError("");
-    console.log("✅ Login successful:", formData);
-    // Later: send request to backend (Spring Boot API)
+    console.log("Login Successful:", formData);
+    // TODO: connect Spring Boot API
   };
 
   return (
@@ -42,11 +41,11 @@ const LoginForm = () => {
         {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
 
         <div className="mb-3">
-          <label className="block mb-1 font-medium">Email</label>
+          <label className="block mb-1 font-medium">SUST Email</label>
           <input
             type="email"
             name="email"
-            placeholder="name@edu.sust.ac.bd"
+            placeholder="name@sust.edu"
             value={formData.email}
             onChange={handleChange}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring focus:ring-blue-300"
@@ -67,7 +66,7 @@ const LoginForm = () => {
 
         <button
           type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition duration-200"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition"
         >
           Login
         </button>
