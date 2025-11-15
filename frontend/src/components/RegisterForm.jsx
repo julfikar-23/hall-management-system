@@ -17,20 +17,21 @@ const RegisterForm = () => {
     e.preventDefault();
     const { name, email, password, confirmPassword } = formData;
 
+    //Allow ONLY @sust.edu
     const emailRegex = /^[a-zA-Z0-9._%+-]+@sust\.edu$/;
 
     if (!name.trim()) {
-      setError("Name is required.");
+      setError("Full name is required.");
       return;
     }
 
     if (!emailRegex.test(email)) {
-      setError("Please use a valid SUST institutional email (e.g., name@sust.edu)");
+      setError("Only official SUST email is allowed (e.g., name@sust.edu)");
       return;
     }
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters long.");
+      setError("Password must be at least 6 characters.");
       return;
     }
 
@@ -40,7 +41,8 @@ const RegisterForm = () => {
     }
 
     setError("");
-    console.log("✅ Registration data:", formData);
+    console.log("Registration Successful:", formData);
+    // TODO: connect to Spring Boot API
   };
 
   return (
@@ -61,7 +63,7 @@ const RegisterForm = () => {
             placeholder="Your full name"
             value={formData.name}
             onChange={handleChange}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring focus:ring-blue-300"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring focus:ring-green-300"
           />
         </div>
 
@@ -73,7 +75,7 @@ const RegisterForm = () => {
             placeholder="name@sust.edu"
             value={formData.email}
             onChange={handleChange}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring focus:ring-blue-300"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring focus:ring-green-300"
           />
         </div>
 
@@ -85,7 +87,7 @@ const RegisterForm = () => {
             placeholder="••••••••"
             value={formData.password}
             onChange={handleChange}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring focus:ring-blue-300"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring focus:ring-green-300"
           />
         </div>
 
@@ -97,13 +99,13 @@ const RegisterForm = () => {
             placeholder="••••••••"
             value={formData.confirmPassword}
             onChange={handleChange}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring focus:ring-blue-300"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring focus:ring-green-300"
           />
         </div>
 
         <button
           type="submit"
-          className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-lg transition duration-200"
+          className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-lg transition"
         >
           Register
         </button>
