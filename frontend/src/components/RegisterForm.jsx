@@ -1,41 +1,43 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 
 const RegisterForm = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    hall: "",
+    hallName: "", // Changed from 'hall' to match backend
     password: "",
     confirmPassword: "",
   });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const [showHallDropdown, setShowHallDropdown] = useState(false);
+  const navigate = useNavigate();
 
   const halls = [
-    { value: "shph", label: "Shah Paran Hall (SHPH)" },
-    { value: "b24h", label: "Bijoy 24 Hall (B24H)" },
-    { value: "smah", label: "Syed Mujtaba Ali Hall (SMAH)" },
-    { value: "ash", label: "Ayesha Siddiqa Hall (ASH)" },
-    { value: "bsch", label: "Begum Sirajunnesa Chowdhury Hall (BSCH)" },
-    { value: "ftzh", label: "Fatimah Tuz Zahra Hall (FTZH)" }
+    { value: "Shah Paran Hall (SHPH)", label: "Shah Paran Hall (SHPH)" },
+    { value: "Bijoy 24 Hall (B24H)", label: "Bijoy 24 Hall (B24H)" },
+    { value: "Syed Mujtaba Ali Hall (SMAH)", label: "Syed Mujtaba Ali Hall (SMAH)" },
+    { value: "Ayesha Siddiqa Hall (ASH)", label: "Ayesha Siddiqa Hall (ASH)" },
+    { value: "Begum Sirajunnesa Chowdhury Hall (BSCH)", label: "Begum Sirajunnesa Chowdhury Hall (BSCH)" },
+    { value: "Fatimah Tuz Zahra Hall (FTZH)", label: "Fatimah Tuz Zahra Hall (FTZH)" }
   ];
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleHallSelect = (hallValue, hallLabel) => {
-    setFormData({ ...formData, hall: hallValue });
+  const handleHallSelect = (hallValue) => {
+    setFormData({ ...formData, hallName: hallValue }); // Updated to hallName
     setShowHallDropdown(false);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const { name, email, hall, password, confirmPassword } = formData;
+    const { name, email, hallName, password, confirmPassword } = formData;
 
-    // Allow ONLY @sust.edu
+    // Client-side validation
     const emailRegex = /^[a-zA-Z0-9._%+-]+@sust\.edu$/;
 
     if (!name.trim()) {
@@ -48,7 +50,7 @@ const RegisterForm = () => {
       return;
     }
 
-    if (!hall) {
+    if (!hallName) {
       setError("Please select your hall.");
       return;
     }
@@ -63,12 +65,47 @@ const RegisterForm = () => {
       return;
     }
 
+    setLoading(true);
     setError("");
-    console.log("Registration Successful:", formData);
-    // TODO: connect to Spring Boot API
+
+    try {
+      const response = await fetch("http://localhost:8080/api/users/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          hallName: formData.hallName, // Match backend field name
+          password: formData.password,
+          confirmPassword: formData.confirmPassword
+        }),
+      });
+
+      if (response.ok) {
+        const user = await response.json();
+        console.log("Registration Successful:", user);
+        
+        // Show success message
+        setError(""); // Clear any errors
+        alert("Registration successful! You can now login.");
+        
+        // Redirect to login page
+        navigate("/login");
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || "Registration failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      setError("Network error. Please check if the server is running.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const selectedHallLabel = halls.find(hall => hall.value === formData.hall)?.label || "Select your hall";
+  const selectedHallLabel = halls.find(hall => hall.value === formData.hallName)?.label || "Select your hall";
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black py-8 px-4">
@@ -84,7 +121,11 @@ const RegisterForm = () => {
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg mb-6 text-sm">
+          <div className={`px-4 py-3 rounded-lg mb-6 text-sm ${
+            error.includes("successful") 
+              ? "bg-green-900/50 border border-green-700 text-green-200" 
+              : "bg-red-900/50 border border-red-700 text-red-200"
+          }`}>
             {error}
           </div>
         )}
@@ -99,6 +140,7 @@ const RegisterForm = () => {
             value={formData.name}
             onChange={handleChange}
             className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#00df9a] focus:ring-1 focus:ring-[#00df9a] transition-colors duration-200"
+            disabled={loading}
           />
         </div>
 
@@ -112,6 +154,7 @@ const RegisterForm = () => {
             value={formData.email}
             onChange={handleChange}
             className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#00df9a] focus:ring-1 focus:ring-[#00df9a] transition-colors duration-200"
+            disabled={loading}
           />
         </div>
 
@@ -122,11 +165,14 @@ const RegisterForm = () => {
             <button
               type="button"
               onClick={() => setShowHallDropdown(!showHallDropdown)}
+              disabled={loading}
               className={`w-full bg-gray-900 border ${
-                formData.hall ? 'border-[#00df9a]' : 'border-gray-700'
-              } rounded-lg px-4 py-3 text-left text-white focus:outline-none focus:border-[#00df9a] focus:ring-1 focus:ring-[#00df9a] transition-colors duration-200 flex items-center justify-between`}
+                formData.hallName ? 'border-[#00df9a]' : 'border-gray-700'
+              } rounded-lg px-4 py-3 text-left text-white focus:outline-none focus:border-[#00df9a] focus:ring-1 focus:ring-[#00df9a] transition-colors duration-200 flex items-center justify-between ${
+                loading ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
             >
-              <span className={formData.hall ? "text-white" : "text-gray-500"}>
+              <span className={formData.hallName ? "text-white" : "text-gray-500"}>
                 {selectedHallLabel}
               </span>
               <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${showHallDropdown ? 'rotate-180' : ''}`} />
@@ -139,9 +185,9 @@ const RegisterForm = () => {
                   <button
                     key={hall.value}
                     type="button"
-                    onClick={() => handleHallSelect(hall.value, hall.label)}
+                    onClick={() => handleHallSelect(hall.value)}
                     className={`w-full text-left px-4 py-3 hover:bg-gray-800 transition-colors duration-200 ${
-                      formData.hall === hall.value 
+                      formData.hallName === hall.value 
                         ? 'bg-[#00df9a] text-black font-semibold' 
                         : 'text-white'
                     } first:rounded-t-lg last:rounded-b-lg`}
@@ -164,6 +210,7 @@ const RegisterForm = () => {
             value={formData.password}
             onChange={handleChange}
             className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#00df9a] focus:ring-1 focus:ring-[#00df9a] transition-colors duration-200"
+            disabled={loading}
           />
           <p className="text-xs text-gray-500 mt-1">Must be at least 6 characters</p>
         </div>
@@ -178,6 +225,7 @@ const RegisterForm = () => {
             value={formData.confirmPassword}
             onChange={handleChange}
             className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#00df9a] focus:ring-1 focus:ring-[#00df9a] transition-colors duration-200"
+            disabled={loading}
           />
         </div>
 
@@ -188,6 +236,7 @@ const RegisterForm = () => {
               type="checkbox" 
               className="mr-2 bg-gray-800 border-gray-700 text-[#00df9a] focus:ring-[#00df9a] mt-1" 
               required
+              disabled={loading}
             />
             <span>
               I agree to the{" "}
@@ -205,9 +254,22 @@ const RegisterForm = () => {
         {/* Register Button */}
         <button
           type="submit"
-          className="w-full bg-[#00df9a] hover:bg-[#00c785] text-black font-bold py-3 rounded-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] mb-6"
+          disabled={loading}
+          className={`w-full bg-[#00df9a] hover:bg-[#00c785] text-black font-bold py-3 rounded-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] mb-6 ${
+            loading ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
         >
-          Create Account
+          {loading ? (
+            <div className="flex items-center justify-center">
+              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Creating Account...
+            </div>
+          ) : (
+            "Create Account"
+          )}
         </button>
 
         {/* Divider */}
@@ -224,7 +286,9 @@ const RegisterForm = () => {
         <div className="text-center">
           <Link 
             to="/login" 
-            className="inline-block w-full border border-[#00df9a] text-[#00df9a] hover:bg-[#00df9a] hover:text-black font-semibold py-3 rounded-lg transition-all duration-200"
+            className={`inline-block w-full border border-[#00df9a] text-[#00df9a] hover:bg-[#00df9a] hover:text-black font-semibold py-3 rounded-lg transition-all duration-200 ${
+              loading ? 'opacity-50 pointer-events-none' : ''
+            }`}
           >
             Sign In to Existing Account
           </Link>
@@ -235,6 +299,7 @@ const RegisterForm = () => {
           <p className="text-xs text-gray-500">
             Registration requires valid SUST email address
           </p>
+         
         </div>
       </form>
     </div>

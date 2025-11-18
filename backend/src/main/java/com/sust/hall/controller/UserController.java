@@ -1,0 +1,78 @@
+package com.sust.hall.controller;
+
+import com.sust.hall.dto.RegisterRequest;
+import com.sust.hall.entity.User;
+import com.sust.hall.entity.UserRole;
+import com.sust.hall.service.UserService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/users")
+@CrossOrigin(origins = "http://localhost:3000") // Add CORS for React
+public class UserController {
+
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
+    // NEW: Registration endpoint for React form
+    @PostMapping("/register")
+    public ResponseEntity<User> registerUser(@RequestBody RegisterRequest registerRequest) {
+        User createdUser = userService.registerUser(registerRequest);
+        return ResponseEntity.ok(createdUser);
+    }
+
+    // Keep existing endpoints but fix the update method
+    @PostMapping
+    public ResponseEntity<User> createUser(@RequestBody User user) {
+        User createdUser = userService.createUser(user);
+        return ResponseEntity.ok(createdUser);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<User>> getAllUsers() {
+        return ResponseEntity.ok(userService.getAllUsers());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.getUserById(id));
+    }
+
+    @GetMapping("/hall/{hallName}")
+    public ResponseEntity<List<User>> getUsersByHall(@PathVariable String hallName) {
+        return ResponseEntity.ok(userService.getUsersByHall(hallName));
+    }
+
+    @GetMapping("/role/{role}")
+    public ResponseEntity<List<User>> getUsersByRole(@PathVariable UserRole role) {
+        return ResponseEntity.ok(userService.getUsersByRole(role));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user) {
+        User updatedUser = userService.updateUser(id, user);
+        return ResponseEntity.ok(updatedUser);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/halls")
+    public ResponseEntity<List<String>> getAllHallNames() {
+        return ResponseEntity.ok(userService.getAllHallNames());
+    }
+
+    @GetMapping("/statistics")
+    public ResponseEntity<List<Object[]>> getUserStatistics() {
+        return ResponseEntity.ok(userService.getUserStatistics());
+    }
+}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, ArrowLeft } from "lucide-react";
-import Feature from "../components/Feature";
+import Feature from "../../components/Feature";
 
 const Home = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
